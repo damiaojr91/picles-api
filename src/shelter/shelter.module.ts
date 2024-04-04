@@ -8,8 +8,8 @@ import GetShelterDetailsUseCase from './usecases/get.shelter.details.usecase';
   providers: [
     {
       provide: ShelterTokens.getShelterDetailsUseCase,
-      useClass: GetShelterDetailsUseCase
-    }
-  ]
+      useClass: GetShelterDetailsUseCase,
+    },
+  ],
 })
 export class ShelterModule {}
