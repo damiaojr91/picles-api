@@ -12,20 +12,25 @@ export class Pet {
 
   @Prop({ required: true })
   name: string;
+
   @Prop({ required: true })
   type: string;
+
   @Prop({ required: true })
   size: string;
+
   @Prop({ required: true })
   gender: string;
+
   @Prop({ required: true })
   bio: string;
 
-  @Prop({ required: true, default: null })
+  @Prop({ required: false, default: null })
   photo: string;
 
   @Prop({ required: true })
-  createdAT: Date;
+  createdAt: Date;
+
   @Prop({ required: true })
   updatedAt: Date;
 }
