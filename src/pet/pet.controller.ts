@@ -16,6 +16,7 @@ import multerConfig from 'src/config/multer.config';
 import UpdatePetPhotoByIdUseCaseInput from './usecases/dtos/update.pet.photo.by.id.usecase.input';
 import UpdatePetPhotoByIdUseCaseOutput from './usecases/dtos/update.pet.photo.by.id.usecase.output';
 import GetPetsUseCaseInput from './usecases/dtos/get.pets.usecase.input';
+import GetPetsUseCaseOutput from './usecases/dtos/get.pets.usecase.output';
 
 @Controller('pet')
 export class PetController {
@@ -24,6 +25,9 @@ export class PetController {
 
   @Inject(PetTokens.getPetByIdUseCase)
   private readonly getPetByIdUseCase: IUseCase<GetPetByIdUseCaseInput, GetPetByIdUseCaseOutput>
+
+  @Inject(PetTokens.getPetsUseCase)
+  private readonly getPetsUseCase: IUseCase<GetPetsUseCaseInput, GetPetsUseCaseOutput>
 
   @Inject(PetTokens.updatePetByIdUseCase)
   private readonly updatePetByIdUseCase: IUseCase<UpdatePetByIdUseCaseInput, UpdatePetByIdUseCaseOutput>
@@ -41,7 +45,7 @@ export class PetController {
     @Query('gender') gender?: string,
     @Query('page') page?: string,
     @Query('itemsPerPage') itemsPerPage?: string,
-  ){
+  ): Promise<GetPetsUseCaseOutput>{
     const FIRST_PAGE = 1
     const DEFAULT_ITENS_PER_PAGE = 10
     const useCaseInput = new GetPetsUseCaseInput ({
@@ -51,6 +55,8 @@ export class PetController {
       page: !!page ? parseInt(page) : FIRST_PAGE,
       itemsPerPage: !!itemsPerPage ? parseInt(itemsPerPage) : DEFAULT_ITENS_PER_PAGE,
     })
+
+    return await this.getPetsUseCase.run(useCaseInput)
   }
 
   @Get(':id')
