@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Inject, Param, Post, Put } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Inject, Param, Patch, Post, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
 import CreatePetControllerInput from './dtos/create.pet.controller.input';
 import CreatePetUseCaseOutput from './usecases/dtos/create.pet.usecase.output';
 import CreatePetUseCaseInput from './usecases/dtos/create.pet.usecase.input';
@@ -11,6 +11,10 @@ import UpdatePetByIdUseCaseInput from './usecases/dtos/update.pet.by.id.usecase.
 import UpdatePetByIdUseCaseOutput from './usecases/dtos/update.pet.by.id.usecase.output';
 import DeletePetByIdUseCaseInput from './usecases/dtos/delete.pet.by.id.usecase.input';
 import DeletePetByIdUseCaseOutput from './usecases/dtos/delete.pet.by.id.usecase.output';
+import { FileInterceptor } from '@nestjs/platform-express';
+import multerConfig from 'src/config/multer.config';
+import UpdatePetPhotoByIdUseCaseInput from './usecases/dtos/update.pet.photo.by.id.usecase.input';
+import UpdatePetPhotoByIdUseCaseOutput from './usecases/dtos/update.pet.photo.by.id.usecase.output';
 
 @Controller('pet')
 export class PetController {
@@ -25,6 +29,9 @@ export class PetController {
 
   @Inject(PetTokens.deletePetByIdUseCase)
   private readonly deletePetByIdUseCase: IUseCase<DeletePetByIdUseCaseInput, DeletePetByIdUseCaseOutput>
+
+  @Inject(PetTokens.updatePetPhotoByIdUseCase)
+  private readonly updatePetPhotoByIdUseCase: IUseCase<UpdatePetPhotoByIdUseCaseInput, UpdatePetPhotoByIdUseCaseOutput>
 
   @Get(':id')
   async getPetById(@Param('id') id: string): Promise<GetPetByIdUseCaseOutput>{
@@ -64,6 +71,24 @@ export class PetController {
       return await this.deletePetByIdUseCase.run(useCaseInput)
     } catch (error) {
       throw new BadRequestException(JSON.parse(error.message))
+    }
+  }
+
+  @Patch(':id/photo')
+  @UseInterceptors(FileInterceptor('photo', multerConfig))
+  async updatePhoto(
+    @UploadedFile() photo: Express.Multer.File,
+    @Param('id') id: string,
+  ): Promise<UpdatePetPhotoByIdUseCaseOutput>{
+    try {
+      const useCaseInput = new UpdatePetPhotoByIdUseCaseInput({
+          id,
+          photoPath: photo.path
+      })
+
+      return await this.updatePetPhotoByIdUseCase.run(useCaseInput)
+    } catch (error) {
+        throw new BadRequestException(JSON.parse(error.message))
     }
   }
 }

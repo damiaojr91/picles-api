@@ -1,6 +1,6 @@
 import { IUseCase } from "src/domain/iusecase.interface";
-import UpdatePetByIdUseCaseInput from "./dtos/update.pet.by.id.usecase.input";
-import UpdatePetByIdUseCaseOutput from "./dtos/update.pet.by.id.usecase.output";
+import UpdatePetPhotoByIdUseCaseInput from "./dtos/update.pet.photo.by.id.usecase.input";
+import UpdatePetPhotoByIdUseCaseOutput from "./dtos/update.pet.photo.by.id.usecase.output";
 import { Inject, Injectable } from "@nestjs/common";
 import IPetRepository from "../interfaces/pet.repository.interface";
 import PetTokens from "../pet.tokens";
@@ -10,45 +10,43 @@ import AppTokens from "src/app.tokens";
 import IFileService from "src/interfaces/file.service.interface";
 
 @Injectable()
-export default class UpdatePetByIdUseCase implements IUseCase<UpdatePetByIdUseCaseInput, UpdatePetByIdUseCaseOutput>{
+export default class UpdatePetPhotoByIdUseCase implements IUseCase<UpdatePetPhotoByIdUseCaseInput, UpdatePetPhotoByIdUseCaseOutput>{
   constructor(
     @Inject(PetTokens.petRepository)
     private readonly petRepository: IPetRepository,
 
     @Inject(AppTokens.fileService)
     private readonly fileService: IFileService,
-  ){}
+  ) {}
 
-  async run(input: UpdatePetByIdUseCaseInput): Promise<UpdatePetByIdUseCaseOutput> {
-    let pet = await this.getPetById(input.id)
+  async run(input: UpdatePetPhotoByIdUseCaseInput): Promise<UpdatePetPhotoByIdUseCaseOutput> {
+    let pet = await this.findPetById(input.id)
 
     if(!pet) {
       throw new PetNotFoundError()
     }
 
     await this.petRepository.updateById({
-      ...input,
-      _id: input.id
-    });
+      _id: input.id,
+      photo: input.photoPath
+    })
 
-    pet = await this.getPetById(input.id);
+    const photo = await this.fileService.readFile(input.photoPath);
 
-    const petPhoto = !!pet.photo ? (await this.fileService.readFile(pet.photo)).toString('base64') : null;
-
-    return new UpdatePetByIdUseCaseOutput ({
+    return new UpdatePetPhotoByIdUseCaseOutput({
       id: pet._id,
       name: pet.name,
       type: pet.type,
       size: pet.size,
       gender: pet.gender,
       bio: pet.bio,
-      photo: petPhoto,
+      photo: photo.toString('base64'),
       createdAt: pet.createdAt,
       updatedAt: pet.updatedAt
-    });
+    })
   }
 
-  private async getPetById(id: string): Promise<Pet>{
+  private async findPetById(id: string): Promise<Pet>{
     try{
       return await this.petRepository.getById(id)
     } catch (error) {
